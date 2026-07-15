@@ -207,17 +207,32 @@
   .card.in-cart{ border-color:var(--lime-dark); box-shadow:0 0 0 3px rgba(199,220,63,0.22); }
   .card.is-hidden{ display:none; }
 
-  .card-media{
-    position:relative; width:100%; height:132px; background:var(--panel);
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .card-media svg{ width:36px; height:36px; color:var(--teal); }
-  .card-media .card-ref{
-    position:absolute; top:10px; left:10px;
-    background:rgba(8,20,18,0.72); color:var(--lime);
-    font-family:var(--font-mono); font-size:0.63rem; letter-spacing:0.03em;
-    padding:4px 9px; border-radius:6px;
-  }
+ .card-media{
+  position:relative; width:100%; height:132px; background:var(--panel);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.card-media-icon{
+  position:absolute; inset:0; z-index:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.card-media-icon svg{ width:36px; height:36px; color:var(--teal); }
+.card-photo{
+  position:absolute; inset:8px; z-index:1;
+  width:calc(100% - 16px); height:calc(100% - 16px);
+  object-fit:contain; object-position:center;
+  background:var(--white);
+  border-radius:8px;
+  transition:transform .35s ease;
+}
+.card:hover .card-photo{ transform:scale(1.04); }
+.card-media .card-ref{
+  position:absolute; top:10px; left:10px; z-index:2;
+  background:rgba(8,20,18,0.72); color:var(--lime);
+  font-family:var(--font-mono); font-size:0.63rem; letter-spacing:0.03em;
+  padding:4px 9px; border-radius:6px;
+}
+.card-fav{ z-index:3; }
+.card.in-cart .card-media::after{ z-index:4; }
   .card.in-cart .card-media::after{
     content:'En tu pedido'; position:absolute; bottom:0; left:0; right:0;
     background:var(--teal-dark); color:var(--lime); text-align:center;
@@ -1051,50 +1066,68 @@
 
   /* ======================================================================
      PRODUCTOS — tu catálogo real, organizado por categoría
+
+     📷 CÓMO PONER FOTOS A TUS PRODUCTOS:
+     Cada producto tiene un campo "img". Si lo dejas vacío (img:''), la
+     tarjeta muestra el ícono de la categoría como respaldo (no se rompe
+     nada). Para poner una foto real, pega la URL de la imagen ahí:
+
+        { id:'deg-1', ..., pres:'Botella 1L', img:'https://tu-sitio.com/fotos/deg-01.jpg' }
+
+     Opciones para conseguir esa URL:
+     1) Sube la foto a un servicio de imágenes (imgur.com, Cloudinary,
+        Google Drive con enlace público, tu propio hosting, etc.) y copia
+        el enlace directo a la imagen (debe terminar en .jpg/.png/.webp
+        o abrir la imagen sola al pegarlo en el navegador).
+     2) Usa una imagen ya publicada en internet (foto del fabricante,
+        catálogo del proveedor, etc.), respetando derechos de uso.
+
+     Recomendación: fotos cuadradas o 4:3, mínimo 400x400px, fondo claro.
+     Si una URL falla o no carga, la tarjeta regresa sola al ícono.
      ====================================================================== */
   const PRODUCTS = [
     // Desengrasantes y limpieza general
-    { id:'deg-1', cat:'cat-deg', ref:'DEG-01', name:'Multiuso Fabuloso', pres:'Botella 1L' },
-    { id:'deg-2', cat:'cat-deg', ref:'DEG-02', name:'Multiuso Desengrasante', pres:'Botella 1L' },
-    { id:'deg-3', cat:'cat-deg', ref:'DEG-03', name:'Limpia vidrios', pres:'Botella 650ml' },
+    { id:'deg-1', cat:'cat-deg', ref:'DEG-01', name:'Multiuso Fabuloso', pres:'Botella 1L', img:'https://github.com/cruzmontoyabrayanfernando-bot/Productos-de-limpieza/blob/ALOJAMIENTO-PRINCIPAL/Multiuso%20Fabuloso.png?raw=true' },
+    { id:'deg-2', cat:'cat-deg', ref:'DEG-02', name:'Multiuso Desengrasante', pres:'Botella 1L', img:'https://github.com/cruzmontoyabrayanfernando-bot/Productos-de-limpieza/blob/ALOJAMIENTO-PRINCIPAL/desengrasante.png?raw=true' },
+    { id:'deg-3', cat:'cat-deg', ref:'DEG-03', name:'Limpia vidrios', pres:'Botella 5L', img:'https://github.com/cruzmontoyabrayanfernando-bot/Productos-de-limpieza/blob/ALOJAMIENTO-PRINCIPAL/LIMPIA%20VIDRIOS.png?raw=true' },
 
     // Desinfección y control de plagas
-    { id:'des-1', cat:'cat-des', ref:'DES-01', name:'Cloro a granel al 6%', pres:'Litro (a granel)' },
-    { id:'des-2', cat:'cat-des', ref:'DES-02', name:'Ácido muriático rosado', pres:'Botella 1L' },
-    { id:'des-3', cat:'cat-des', ref:'DES-03', name:'Raid Casa y Jardín', pres:'Aerosol 400ml' },
-    { id:'des-4', cat:'cat-des', ref:'DES-04', name:'Raid Max', pres:'Aerosol 360ml' },
-    { id:'des-5', cat:'cat-des', ref:'DES-05', name:'Aerosol Raid', pres:'Aerosol 227ml' },
-    { id:'des-6', cat:'cat-des', ref:'DES-06', name:'Pato discos activos', pres:'Paquete 2 piezas' },
+    { id:'des-1', cat:'cat-des', ref:'DES-01', name:'Cloro a granel al 6%', pres:'Litro (a granel)', img:'https://github.com/cruzmontoyabrayanfernando-bot/Productos-de-limpieza/blob/ALOJAMIENTO-PRINCIPAL/Cloro%20a%20granel%20al%206%25.png?raw=true'},
+    { id:'des-2', cat:'cat-des', ref:'DES-02', name:'Ácido muriático rosado', pres:'Botella 1L', img:'' },
+    { id:'des-3', cat:'cat-des', ref:'DES-03', name:'Raid Casa y Jardín', pres:'Aerosol 400ml', img:'' },
+    { id:'des-4', cat:'cat-des', ref:'DES-04', name:'Raid Max', pres:'Aerosol 360ml', img:'' },
+    { id:'des-5', cat:'cat-des', ref:'DES-05', name:'Aerosol Raid', pres:'Aerosol 227ml', img:'' },
+    { id:'des-6', cat:'cat-des', ref:'DES-06', name:'Pato discos activos', pres:'Paquete 2 piezas', img:'' },
 
     // Loza, cocina y lavandería
-    { id:'loz-1', cat:'cat-loz', ref:'LOZ-01', name:'Jabón lavatrastes tipo Axion', pres:'Pieza 400g' },
-    { id:'loz-2', cat:'cat-loz', ref:'LOZ-02', name:'Fibra verde Scotch Brite', pres:'Paquete 3 piezas' },
-    { id:'loz-3', cat:'cat-loz', ref:'LOZ-03', name:'Fibra esponja Scotch Brite', pres:'Paquete 3 piezas' },
-    { id:'loz-4', cat:'cat-loz', ref:'LOZ-04', name:'Fibra negra Scotch Brite', pres:'Pieza' },
-    { id:'loz-5', cat:'cat-loz', ref:'LOZ-05', name:'Detergente en polvo', pres:'Bolsa 1kg' },
+    { id:'loz-1', cat:'cat-loz', ref:'LOZ-01', name:'Jabón lavatrastes tipo Axion', pres:'Pieza 400g', img:'' },
+    { id:'loz-2', cat:'cat-loz', ref:'LOZ-02', name:'Fibra verde Scotch Brite', pres:'Paquete 3 piezas', img:'' },
+    { id:'loz-3', cat:'cat-loz', ref:'LOZ-03', name:'Fibra esponja Scotch Brite', pres:'Paquete 3 piezas', img:'' },
+    { id:'loz-4', cat:'cat-loz', ref:'LOZ-04', name:'Fibra negra Scotch Brite', pres:'Pieza', img:'' },
+    { id:'loz-5', cat:'cat-loz', ref:'LOZ-05', name:'Detergente en polvo', pres:'Bolsa 1kg', img:'' },
 
     // Higiene de manos y papel
-    { id:'hig-1', cat:'cat-hig', ref:'HIG-01', name:'Shampoo para manos', pres:'Bidón 1L' },
-    { id:'hig-2', cat:'cat-hig', ref:'HIG-02', name:'Toalla en rollo (GC Paper)', pres:'Rollo institucional' },
-    { id:'hig-3', cat:'cat-hig', ref:'HIG-03', name:'Toalla interdoblada (GC Paper)', pres:'Paquete 150 hojas' },
-    { id:'hig-4', cat:'cat-hig', ref:'HIG-04', name:'Papel higiénico (GC Paper)', pres:'Paquete 4 rollos' },
+    { id:'hig-1', cat:'cat-hig', ref:'HIG-01', name:'Shampoo para manos', pres:'Bidón 1L', img:'' },
+    { id:'hig-2', cat:'cat-hig', ref:'HIG-02', name:'Toalla en rollo (GC Paper)', pres:'Rollo institucional', img:'' },
+    { id:'hig-3', cat:'cat-hig', ref:'HIG-03', name:'Toalla interdoblada (GC Paper)', pres:'Paquete 150 hojas', img:'' },
+    { id:'hig-4', cat:'cat-hig', ref:'HIG-04', name:'Papel higiénico (GC Paper)', pres:'Paquete 4 rollos', img:'' },
 
     // Pisos, sanitarios y ambientación
-    { id:'pis-1', cat:'cat-pis', ref:'PIS-01', name:'Trapeador Magitel', pres:'Pieza' },
-    { id:'pis-2', cat:'cat-pis', ref:'PIS-02', name:'Trapeador Twister', pres:'Pieza' },
-    { id:'pis-3', cat:'cat-pis', ref:'PIS-03', name:'Trapeador Pabilo', pres:'Pieza' },
-    { id:'pis-4', cat:'cat-pis', ref:'PIS-04', name:'Escoba Veneciana', pres:'Pieza' },
-    { id:'pis-5', cat:'cat-pis', ref:'PIS-05', name:'Escoba Abanico', pres:'Pieza' },
-    { id:'pis-6', cat:'cat-pis', ref:'PIS-06', name:'Cepillo para baño', pres:'Pieza' },
-    { id:'pis-7', cat:'cat-pis', ref:'PIS-07', name:'Tapete mingitorio Weise', pres:'Pieza' },
-    { id:'pis-8', cat:'cat-pis', ref:'PIS-08', name:'Aerosol Weise', pres:'Aerosol 400ml' },
+    { id:'pis-1', cat:'cat-pis', ref:'PIS-01', name:'Trapeador Magitel', pres:'Pieza', img:'' },
+    { id:'pis-2', cat:'cat-pis', ref:'PIS-02', name:'Trapeador Twister', pres:'Pieza', img:'' },
+    { id:'pis-3', cat:'cat-pis', ref:'PIS-03', name:'Trapeador Pabilo', pres:'Pieza', img:'' },
+    { id:'pis-4', cat:'cat-pis', ref:'PIS-04', name:'Escoba Veneciana', pres:'Pieza', img:'' },
+    { id:'pis-5', cat:'cat-pis', ref:'PIS-05', name:'Escoba Abanico', pres:'Pieza', img:'' },
+    { id:'pis-6', cat:'cat-pis', ref:'PIS-06', name:'Cepillo para baño', pres:'Pieza', img:'' },
+    { id:'pis-7', cat:'cat-pis', ref:'PIS-07', name:'Tapete mingitorio Weise', pres:'Pieza', img:'' },
+    { id:'pis-8', cat:'cat-pis', ref:'PIS-08', name:'Aerosol Weise', pres:'Aerosol 400ml', img:'' },
 
     // Equipos, accesorios y textiles
-    { id:'eqp-1', cat:'cat-eqp', ref:'EQP-01', name:'Cepillo plancha para ropa', pres:'Pieza' },
-    { id:'eqp-2', cat:'cat-eqp', ref:'EQP-02', name:'Trapo microfibra', pres:'Paquete 3 piezas' },
-    { id:'eqp-3', cat:'cat-eqp', ref:'EQP-03', name:'Franela gris', pres:'Paquete 5 piezas' },
-    { id:'eqp-4', cat:'cat-eqp', ref:'EQP-04', name:'Bolsas negras', pres:'Paquete' },
-    { id:'eqp-5', cat:'cat-eqp', ref:'EQP-05', name:'Atomizador de 1 litro', pres:'Pieza' }
+    { id:'eqp-1', cat:'cat-eqp', ref:'EQP-01', name:'Cepillo plancha para ropa', pres:'Pieza', img:'' },
+    { id:'eqp-2', cat:'cat-eqp', ref:'EQP-02', name:'Trapo microfibra', pres:'Paquete 3 piezas', img:'' },
+    { id:'eqp-3', cat:'cat-eqp', ref:'EQP-03', name:'Franela gris', pres:'Paquete 5 piezas', img:'' },
+    { id:'eqp-4', cat:'cat-eqp', ref:'EQP-04', name:'Bolsas negras', pres:'Paquete', img:'' },
+    { id:'eqp-5', cat:'cat-eqp', ref:'EQP-05', name:'Atomizador de 1 litro', pres:'Pieza', img:'' }
   ];
 
   /* ======================================================================
@@ -1204,33 +1237,34 @@
   }
 
   function cardHTML(p){
-    const cat = catById(p.cat);
-    return `
-    <div class="card" id="card-${p.id}" data-name="${p.name.toLowerCase()}" data-ref="${p.ref.toLowerCase()}">
-      <div class="card-media">
-        ${iconFor(cat)}
-        <span class="card-ref">REF. ${p.ref}</span>
-        <button type="button" class="card-fav" data-id="${p.id}" onclick="toggleFavorite('${p.id}')" aria-label="Marcar ${p.name} como favorito">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8L12 3.5Z"/></svg>
-        </button>
-      </div>
-      <div class="card-content">
-        <h4 data-role="card-title">${p.name}</h4>
-        <span class="card-pres">${p.pres}</span>
-        <div class="card-bottom">
-          <div class="qty-presets">
-            <button type="button" onclick="addQty('${p.id}', 5)">+5</button>
-            <button type="button" onclick="addQty('${p.id}', 10)">+10</button>
-          </div>
-          <div class="stepper">
-            <button type="button" aria-label="Quitar uno de ${p.name}" onclick="changeQty('${p.id}', -1)">−</button>
-            <span class="qty" id="qty-${p.id}">0</span>
-            <button type="button" aria-label="Agregar uno de ${p.name}" onclick="changeQty('${p.id}', 1)">+</button>
-          </div>
+  const cat = catById(p.cat);
+  return `
+  <div class="card" id="card-${p.id}" data-name="${p.name.toLowerCase()}" data-ref="${p.ref.toLowerCase()}">
+    <div class="card-media">
+      <div class="card-media-icon">${iconFor(cat)}</div>
+      ${p.img ? `<img class="card-photo" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.remove()">` : ''}
+      <span class="card-ref">REF. ${p.ref}</span>
+      <button type="button" class="card-fav" data-id="${p.id}" onclick="toggleFavorite('${p.id}')" aria-label="Marcar ${p.name} como favorito">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8L12 3.5Z"/></svg>
+      </button>
+    </div>
+    <div class="card-content">
+      <h4 data-role="card-title">${p.name}</h4>
+      <span class="card-pres">${p.pres}</span>
+      <div class="card-bottom">
+        <div class="qty-presets">
+          <button type="button" onclick="addQty('${p.id}', 5)">+5</button>
+          <button type="button" onclick="addQty('${p.id}', 10)">+10</button>
+        </div>
+        <div class="stepper">
+          <button type="button" aria-label="Quitar uno de ${p.name}" onclick="changeQty('${p.id}', -1)">−</button>
+          <span class="qty" id="qty-${p.id}">0</span>
+          <button type="button" aria-label="Agregar uno de ${p.name}" onclick="changeQty('${p.id}', 1)">+</button>
         </div>
       </div>
-    </div>`;
-  }
+    </div>
+  </div>`;
+}
 
   /* ---------------------------------------------------------------------
      BUSCADOR
